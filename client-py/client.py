@@ -1,4 +1,8 @@
+import sys
+sys.path.insert(0, '../libs/')
+
 from common import Common
+
 import socket
 import struct
 import time

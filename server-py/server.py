@@ -1,33 +1,38 @@
+import asyncore
+import socket
+import struct
+
+import sys
+sys.path.insert(0, '../libs/')
+
 from common import Common
 
-import time
-import socket    
-import struct 
-import sys 
+class ServerHandler(asyncore.dispatcher_with_send):
+    def handle_read(self):
+        data = self.recv(1024)
+        if data:
+            self.send(data)
+            #self.handle_client(data)
 
-HOST = ''
-UDP_PORT = 8802
+     
+    
 
-sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-sock.bind((HOST, UDP_PORT))
-#sock.listen(1)
 
-print("Iniciando Servidor... \n")
+class Server(asyncore.dispatcher):
+    def __init__(self, host, port):
+        asyncore.dispatcher.__init__(self)
+        self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.set_reuse_addr()
+        self.bind((host, port))
+        self.listen(5)
 
-com = Common()
+    def handle_accept(self):
+        pair = self.accept()
+        if pair is not None:
+            sock, addr = pair
+            print ("Connection from %s" %repr(addr))
+            handler = ServerHandler(sock)
 
-while True:
-    print("Waiting for client ...\n")
-    data, addr = sock.recvfrom(1024)
-    offset = 0
-    op = struct.unpack_from(">BB", data, offset)
-    offset += struct.calcsize(">BB")
-    if (op[0] == com.LED_STATE):
-        print("%s recieved from : [%s]:[%s]\n" %(com.getOperationName(op[0]), addr[0].strip(), addr[1]))
-        com.sendPackage(addr[0].strip(), addr[1], sock,  com.LED_STATE, com.getValue())
-    elif op[0] == com.LED_TOGGLE_REQUEST:
-        print("Server received a toggle request...\n")
-        com.sendPackage(addr[0].strip(), addr[1], sock, com.LED_SET_STATE, com.getValue())
-    pass
 
-    time.sleep(1.5)
+server = Server("localhost", 8802)
+asyncore.loop()
