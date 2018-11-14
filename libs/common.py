@@ -11,6 +11,7 @@ class Common:
     LED_STATE = (0x7C)
     DEVICES_LIST = (0x7D)
     HANDSHAKE = (0x7E)
+    LED_GET_STATE = (0x7F)
 
     LEDS_GREEN = 2
     LEDS_RED = 1
@@ -48,7 +49,11 @@ class Common:
         elif operation == self.LIGHT_UP:
             response = "LIGHT UP LED"
         elif operation == self.LIGHT_DOWN:
-            response = "LIGHT DOWN LED"            
+            response = "LIGHT DOWN LED"
+        elif operation == self.DEVICES_LIST:
+            response = "DEVICE LIST"
+        elif operation == self.LED_GET_STATE:
+            response = "LED GET STATE"
         
         # if operation[1] == 0:
         #     response += " OFF"
