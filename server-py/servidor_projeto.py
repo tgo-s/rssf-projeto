@@ -1,28 +1,80 @@
+#-*- coding: utf-8 -*-
+
 import socket
 import struct
 import random
 from threading import Thread
 
 import sys
-sys.path.insert(0, '../libs/')
-
+sys.path.insert(0, '../libs')
 from common import Common
+
+device_addr = []
+ui_addr = []
 
 
 def handleOperations(op, sock, client_addr, client_port):
     com = Common()
     print("[%s] request was received from client [%s]:[%s]" %(com.getOperationName(op[0]), client_addr, client_port))
     if op[0] == com.IDENTIFY:
-        print("Sending %s..." %com.getOperationName(com.HANDSHAKE))
-        com.sendPackage(client_addr, client_port, sock, com.HANDSHAKE, 1)
+        if(op[1] == com.CLIENT_MICROCONTROLLER):
+            device_addr.append(client_addr)
+            device_addr.append(client_port)
+            print("Device identified - IP registered")
+            pass
+        elif (op[1] == com.CLIENT_UI):
+            ui_addr.append(client_addr)
+            ui_addr.append(client_port)
+            print("Client identified - IP registered")
+            pass
+        print("Sending [%s]..." %com.getOperationName(com.SUCCESS))
+        com.sendPackage(client_addr, client_port, sock, com.SUCCESS, 1)
         pass
-    elif op[0] == com.DEVICES_LIST:
-        print("Sending %s..." %com.getOperationName(com.DEVICES_LIST))
-        com.sendPackage(client_addr, client_port, sock, com.DEVICES_LIST, 1)
+    # elif op[0] == com.DEVICES_LIST:
+    #     print("Sending %s..." %com.getOperationName(com.DEVICES_LIST))
+    #     com.sendPackage(client_addr, client_port, sock, com.DEVICES_LIST, 1)
+    #     pass
+    elif op[0] == com.LED_STATE:
+        if(len(ui_addr) > 0):
+            print("Sending [%s] to client" %com.getOperationName(com.LED_STATE))
+            com.sendPackage(ui_addr[0], ui_addr[1], sock, com.LED_STATE, op[1])
+            pass
+        else:
+            print("There are no clients registered")
+            pass
         pass
     elif op[0] == com.LED_GET_STATE:
-        print("Sending %s..." %com.getOperationName(com.LED_STATE))
-        com.sendPackage(client_addr, client_port, sock, com.LED_STATE, 0)
+        if(len(device_addr) > 0):
+            print("Sending [%s] to device..." %com.getOperationName(com.LED_GET_STATE))
+            com.sendPackage(device_addr[0], device_addr[1], sock, com.LED_GET_STATE, 0)    
+            pass
+        else:
+            print("There are no devices registered")
+            print("Returning [%s] to client..." %com.getOperationName(com.SUCCESS))
+            com.sendPackage(ui_addr[0], ui_addr[1], sock, com.SUCCESS, 0)    
+            pass
+        pass
+    elif (op[0] == com.LIGHT_UP):
+        if(len(device_addr) > 0):
+            print("Sending [%s] to device..." %com.getOperationName(com.LIGHT_UP))
+            com.sendPackage(device_addr[0], device_addr[1], sock, com.LIGHT_UP, com.LIGHT_DEFAULT_VALUE)    
+            pass
+        else:
+            print("There are no devices registered")
+            print("Returning [%s] to client..." %com.getOperationName(com.SUCCESS))
+            com.sendPackage(ui_addr[0], ui_addr[1], sock, com.SUCCESS, 0)    
+            pass
+        pass
+    elif (op[0] == com.LIGHT_DOWN):
+        if(len(device_addr) > 0):
+            print("Sending [%s] to device..." %com.getOperationName(com.LIGHT_DOWN))
+            com.sendPackage(device_addr[0], device_addr[1], sock, com.LIGHT_DOWN, com.LIGHT_DEFAULT_VALUE)    
+            pass
+        else:
+            print("There are no devices registered")
+            print("Returning [%s] to client..." %com.getOperationName(com.SUCCESS))
+            com.sendPackage(ui_addr[0], ui_addr[1], sock, com.SUCCESS, 0)    
+            pass
         pass
     else:
         print("Operation [%d] not found\n" %op[0])
@@ -59,29 +111,9 @@ def startServer():
                 #print("Exception: %s" %ex)
                 pass
             except KeyboardInterrupt:
+                print('Keyboard Interrupt, closing socket...')
                 sock.close()
                 break
-            # finally:
-            #     sock.close()
-            #     pass
-
-            # if op[0] == com.LIGHT_UP:
-                #ENVIA PARA A PLAQUINHA A ALTERAÇÃO
-            #     valor_led = op[1]
-            #     op = struct.pack(">BB" , com.LIGHT_UP, valor_led)
-            #     sock.sendto(op , devices[0])
-            # elif op[0] == com.LIGHT_DOWN:
-            #     #ENVIA PARA A PLAQUINHA A ALTERAÇÃO
-            #     valor_led = op[1]
-            #     op = struct.pack(">BB" , com.LIGHT_DOWN , valor_led)
-            #     sock.sendto(op , devices[0])
-            # elif op[0] == com.LED_STATE:
-            #     op = struct.pack(">BB" , com.LED_STATE , 0)
-            #     sock.sendto(op , (addr[0].splip(), addr[1]))
-            # # elif op[0] == com.IDENTIFY:
-            # #     devices[] =  
-            # elif op[0] == com.DEVICES_LIST:
-            #     op = struct.pack(">BB" , PLACAS , com.DEVICES_LIST)
-            #     sock.sendto(op , (addr[0].splip(), addr[1]))        
+                   
 
 startServer()

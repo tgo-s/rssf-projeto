@@ -1,22 +1,29 @@
+#-*- coding: utf-8 -*-
+
 import struct
 import socket
 import random
 
 class Common:
 
-
     IDENTIFY = (0x79)
     LIGHT_UP = (0x7A)
     LIGHT_DOWN = (0x7B)
     LED_STATE = (0x7C)
-    DEVICES_LIST = (0x7D)
-    HANDSHAKE = (0x7E)
+    # DEVICES_LIST = (0x7D)
+    SUCCESS = (0x7E)
     LED_GET_STATE = (0x7F)
+    
 
-    LEDS_GREEN = 2
+    LEDS_OFF = 0
     LEDS_RED = 1
+    LEDS_GREEN = 2
     LEDS_ALL = 3
 
+    CLIENT_MICROCONTROLLER = 1
+    CLIENT_UI = 2
+    
+    LIGHT_DEFAULT_VALUE = 10
 
     def sendPackage(self, address, port, sock, operation, value):
         print("Sending [%s] package request to: [%s]:[%s]\n" %(self.getOperationName(operation), address, port))
@@ -44,14 +51,14 @@ class Common:
             response = "LED STATE"
         elif operation == self.IDENTIFY:
             response = "IDENTIFY"
-        elif operation == self.HANDSHAKE:
-            response = "HANDSHAKE"
+        elif operation == self.SUCCESS:
+            response = "SUCCESS"
         elif operation == self.LIGHT_UP:
             response = "LIGHT UP LED"
         elif operation == self.LIGHT_DOWN:
             response = "LIGHT DOWN LED"
-        elif operation == self.DEVICES_LIST:
-            response = "DEVICE LIST"
+        # elif operation == self.DEVICES_LIST:
+        #     response = "DEVICE LIST"
         elif operation == self.LED_GET_STATE:
             response = "LED GET STATE"
         

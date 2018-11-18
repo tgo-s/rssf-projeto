@@ -10,7 +10,7 @@ Projeto de RSSF LAB I que implementa uma comunicação entre servidor e cliente 
 |--------------|:-------:|:-----------:|
 |IDENTIFY      |    1    |Microcontroller Client
 |	           |    2    |UI Client
-|HANDSHAKE     |    1    |Send Handshake
+|SUCCESS       |    1    |Send a Success 
 |LED GET STATE |   0/1   |Get the state value of microcontroller client. The value is not relevant
 |LED STATE     |    1    |Led red is on
 |              |    2    |Led green is on

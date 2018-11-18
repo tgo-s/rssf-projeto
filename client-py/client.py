@@ -1,42 +1,108 @@
+# -*- coding: utf-8 -*-
+
 import sys
 sys.path.insert(0, '../libs/')
-
 from common import Common
 
-import socket
-import struct
-import time
+from client_utils import *
 
-UDP_PORT = 8802
-UDP_IP = "::1"
 
-sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+class Client:
+    server_addr = "127.0.0.1"
+    server_port = 8802
+    cliUtil = ClientUtils()
 
-com = Common()
+    def handleLedState(self, package):
+        com = Common()
+        if len(package) > 0 and package[0] == com.LED_STATE:
+            ledVal = package[1]
+            if ledVal == com.LEDS_RED:
+                print("The RED led is [ON] and the GREEN led is [OFF]")
+                pass
+            elif ledVal == com.LEDS_GREEN:
+                print("The RED led is [OFF] and GREEN led is [ON]")
+                pass
+            elif ledVal == com.LEDS_ALL:
+                print("BOTH leds are [ON]")
+                pass
+            elif ledVal == com.LEDS_OFF:
+                print("BOTH leds are [OFF]")
+                pass
+            pass
+        elif len(package) > 0 and package[0] == com.SUCCESS and package[1] == 0:
+            print("An error occurred attempting to get LED STATE")
+            pass
 
-op = struct.pack(">BB", com.LED_STATE, 0)
+    def handlePackageReturn(self, package):
+        com = Common()
+        if(len(package) > 0 and package[0] == com.SUCCESS and package[1] == 1):
+            print("Command executed")
+            pass
+        else:
+            print("An error occured trying to execute command")
+            pass
+        pass
 
-print("UDP Target IP/PORT [%s]:[%s]" %(UDP_IP, UDP_PORT))
+    def handleClientInput(self, input):
+        com = Common()
+        operation = []
+        try:
+            usrInput = int(input)
+            if usrInput == UserInputs.LED_GET_STATE:
+                operation.append(com.LED_GET_STATE)
+                operation.append(1)
+                package = self.cliUtil.sendPackage(self.server_addr, self.server_port, operation[0], operation[1])
+                print("Package received from server")
+                self.handleLedState(package)
+                pass
+            elif usrInput == UserInputs.LIGHT_UP:
+                operation.append(com.LIGHT_UP)
+                operation.append(com.LIGHT_DEFAULT_VALUE)
+                package = self.cliUtil.sendPackage(self.server_addr, self.server_port, operation[0], operation[1])
+                print("Package received from server")
+                self.handlePackageReturn(package)
+            elif usrInput == UserInputs.LIGHT_DOWN:
+                operation.append(com.LIGHT_DOWN)
+                operation.append(com.LIGHT_DEFAULT_VALUE)
+                package = self.cliUtil.sendPackage(self.server_addr, self.server_port, operation[0], operation[1])
+                print("Package received from server")
+                self.handlePackageReturn(package)
+            elif usrInput == UserInputs.EXIT:
+                print("Exiting program")
+                self.cliUtil.close()
+                pass
+            pass
+        except ValueError:
+            print("Unable to proccess the input")
+            pass
+        pass
 
-sock.sendto(op, (UDP_IP, UDP_PORT))
+    def startClient(self):
+        success = self.cliUtil.startClient(self.server_addr, self.server_port)
+        condition = -1
+        if(success):
+            while condition != 0:
+                self.printClientOptions()
+                inputVal = input(">")
+                condition = inputVal
+                if(inputVal != 0):
+                    print("User Input = %s" % inputVal)
+                    self.handleClientInput(inputVal)
+                    pass
+                pass
+            pass
 
-while True:
-    data, addr = sock.recvfrom(1024)
-    print("Listening response from server ...\n")
+        pass
 
-    offset = 0
+    def printClientOptions(self):
+        print("Set one of those options")
+        print("1 - Get Led State from server")
+        print("2 - Led - Light Up")
+        print("3 - Led - Light Down")
+        print("0 - Exit")
+        pass
 
-    op = struct.unpack_from(">BB", data, offset)
-
-    offset += struct.calcsize(">BB")
-
-    if op[0] == com.LED_STATE:
-        print("Getting led state... \n")
-        print("Led state is [%s]\n" %com.getLedStateString(op))
-        com.sendPackage(addr[0].strip(), addr[1],sock, com.LED_TOGGLE_REQUEST, op[1])
-    elif op[0] == com.LED_SET_STATE:
-        print("Setting led state to: [%s]\n" %com.getLedStateString(op))
-        com.sendPackage(addr[0].strip(), addr[1], sock, com.LED_STATE, op[1])
     pass
 
-    # time.sleep(1000)
+cli = Client()
+cli.startClient()
