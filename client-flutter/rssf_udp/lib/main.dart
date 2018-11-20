@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rssf_udp/core/udp_rssf.dart';
+// import 'package:rssf_udp/core/udp_rssf.dart';
 
 void main() => runApp(RssfApp());
 
@@ -27,34 +27,31 @@ class RssfHomePage extends StatefulWidget {
 
 class _RssfHomePageState extends State<RssfHomePage> {
   String _debugMsg = "";
-  Color _red = Color(0x9D0000);
-  Color _green = Color(0x007A0F);
+  Color _red = Color(0xFF9D0000);
+  Color _green = Color(0xFF007A0F);
   bool _isRedActive = false;
-  bool _isGreenActive = false;  
+  bool _isGreenActive = false;
 
-  Color _changeButtonColor(int button, bool isActive){
-    Color newColor;
-    if(button == 1){
-      if(isActive){
-        newColor = Color(0xFF0000);
-        _debugMsg = "Led Red is On";
+  void _changeButtonColor(int button, bool isActive) {
+    setState(() {
+      if (button == 1) {
+        if (isActive) {
+          _red = Color(0xFFFF0000);
+          _debugMsg = "Led Red is On";
+        } else {
+          _red = Color(0xFF9D0000);
+          _debugMsg = "Led Red is Off";
+        }
+      } else if (button == 2) {
+        if (isActive) {
+          _green = Color(0xFF00C718);
+          _debugMsg = "Led Green is On";
+        } else {
+          _green = Color(0xFF007A0F);
+          _debugMsg = "Led Green is Off";
+        }
       }
-      else{
-        newColor = Color(0x9D0000);
-        _debugMsg = "Led Red is Off";
-      }
-    }
-    else if (button == 2){
-      if(isActive){
-        newColor = Color(0x00C718);
-        _debugMsg = "Led Green is On";
-      }
-      else{
-        newColor = Color(0x007A0F);
-        _debugMsg = "Led Green is Off";
-      }
-    }
-    return newColor;
+    });
   }
 
   @override
@@ -69,18 +66,21 @@ class _RssfHomePageState extends State<RssfHomePage> {
           children: <Widget>[
             Row(
               children: <Widget>[
+                Card(
+                  color: Colors.yellow,
+                ),
                 RaisedButton(
                   color: _red,
                   onPressed: () {
                     _isRedActive = !_isRedActive;
-                    _red = _changeButtonColor(1, _isRedActive);
+                    _changeButtonColor(1, _isRedActive);
                   },
                 ),
                 RaisedButton(
                   color: _green,
                   onPressed: () {
                     _isGreenActive = !_isGreenActive;
-                    _green = _changeButtonColor(2, _isGreenActive);
+                    _changeButtonColor(2, _isGreenActive);
                   },
                 ),
               ],
@@ -95,6 +95,4 @@ class _RssfHomePageState extends State<RssfHomePage> {
       ),
     );
   }
-
-  
 }

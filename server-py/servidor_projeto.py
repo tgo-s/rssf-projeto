@@ -76,6 +76,14 @@ def handleOperations(op, sock, client_addr, client_port):
             com.sendPackage(ui_addr[0], ui_addr[1], sock, com.SUCCESS, 0)    
             pass
         pass
+    elif (op[0] == com.SUCCESS):
+        if(op[1] == 1):
+            print("Server received a [%s] return from client" %com.getOperationName(com.SUCCESS))
+            pass
+        else:
+            print("The operation sent returned without success" %com.getOperationName(com.SUCCESS))
+            pass
+        pass
     else:
         print("Operation [%d] not found\n" %op[0])
     pass

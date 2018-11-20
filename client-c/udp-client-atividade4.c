@@ -54,10 +54,12 @@
 #include "net/ip/uip-debug.h"
 
 /*-----------------------------------------------------*/
-#define IDENTIFICACAO (0x79)
-#define ALTERA_MAIS (0x7A)
-#define ALTERA_MENOS (0x7B)
+#define IDENTIFY (0x79)
+#define LIGHT_UP (0x7A)
+#define LIGHT_DOWN (0x7B)
 #define LED_STATE (0x7C)
+#define SUCCESS (0x7E)
+#define LED_GET_STATE (0x7F)
 
 #define OP_REQUEST (0x6E)
 #define OP_RESULT (0x6F)
@@ -87,15 +89,56 @@ tcpip_handler(int16_t *loadvalue, int16_t *current_duty, int16_t *ticks)
     if(uip_newdata()) {
         dados = ((char*)uip_appdata);
         switch (dados[0]) {
-            case ALTERA_MAIS:
-                PRINTF("Entrada no ALTERA MAIS \n");
+            case LED_GET_STATE:
+                PRINTF("Entrada no LED GET STATE");
                 uip_ipaddr_copy(&client_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
                 client_conn->rport = UIP_UDP_BUF->destport;
 
-                if(*current_duty < 100){
-                    *current_duty += 10;
+                sensor = sensors_find(ADC_SENSOR);
+
+                buf[0] = SUCCESS;
+                //buf[1] = ; //enviar o valor do sensor
+
+                uip_udp_packet_send(client_conn, buf, 2);
+                PRINTF("Enviando SUCCESS para [");
+                PRINT6ADDR(&client_conn->ripaddr);
+                PRINTF("]:%u\n", UIP_HTONS(client_conn->rport));
+
+                break;
+            case LIGHT_UP:
+                PRINTF("Entrada no LIGHT UP \n");
+                uip_ipaddr_copy(&client_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
+                client_conn->rport = UIP_UDP_BUF->destport;
+                
+                if((*current_duty + dados[1]) < 100){
+                    *current_duty += dados[1];
                 }else {
                     *current_duty = 100;
+                }
+
+                *ticks = ((*current_duty) * (*loadvalue)) / 100;
+                ti_lib_timer_match_set(GPT0_BASE, TIMER_A, (*loadvalue - *ticks));
+
+                sensor = sensors_find(ADC_SENSOR);
+                sensor->configure(ADC_SENSOR_SET_CHANNEL, ADC_COMPB_IN_AUXIO7);
+
+                buf[0] = SUCCESS;
+                buf[1] = 1;
+
+                uip_udp_packet_send(client_conn, buf, 2);
+                PRINTF("Enviando SUCCESS para [");
+                PRINT6ADDR(&client_conn->ripaddr);
+                PRINTF("]:%u\n", UIP_HTONS(client_conn->rport));
+                break;
+            case LIGHT_DOWN:
+                PRINTF("Entrada no LIGHT DOWN \n");
+                uip_ipaddr_copy(&client_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
+                client_conn->rport = UIP_UDP_BUF->destport;
+
+                if((*current_duty - dados[1]) > 0){
+                    *current_duty -= dados[1];
+                }else {
+                    *current_duty = 0;
                 }
                 *ticks = ((*current_duty) * (*loadvalue)) / 100;
                 ti_lib_timer_match_set(GPT0_BASE, TIMER_A, (*loadvalue - *ticks));
@@ -103,23 +146,11 @@ tcpip_handler(int16_t *loadvalue, int16_t *current_duty, int16_t *ticks)
                 sensor = sensors_find(ADC_SENSOR);
                 sensor->configure(ADC_SENSOR_SET_CHANNEL, ADC_COMPB_IN_AUXIO7);
 
-                buf[0] = LED_STATE;
-                buf[1] = sensor->value(ADC_SENSOR_VALUE);
+                buf[0] = SUCCESS;
+                buf[1] = 1;
+
                 uip_udp_packet_send(client_conn, buf, 2);
-                PRINTF("Enviando GET_STATE para [");
-                PRINT6ADDR(&client_conn->ripaddr);
-                PRINTF("]:%u\n", UIP_HTONS(client_conn->rport));
-                break;
-            case ALTERA_MENOS:
-                PRINTF("Entrada no LED_SET_STATE \n");
-                leds_off(LEDS_ALL);
-                leds_on(dados[1]);
-                uip_ipaddr_copy(&client_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
-                client_conn->rport = UIP_UDP_BUF->destport;
-                buf[0] = LED_STATE;
-                buf[1] = leds_get();
-                uip_udp_packet_send(client_conn, buf, 2);
-                PRINTF("Enviando SET_STATE para [");
+                PRINTF("Enviando SUCCESS para [");
                 PRINT6ADDR(&client_conn->ripaddr);
                 PRINTF("]:%u\n", UIP_HTONS(client_conn->rport));
                 break;
@@ -138,7 +169,7 @@ timeout_handler(void)
       return;
     }
     buf[0] = IDENTIFICACAO;
-    buf[1] = NULL;
+    buf[1] = 1;
     uip_udp_packet_send(client_conn, buf, 2);
 
     PRINTF("Cliente para [");
