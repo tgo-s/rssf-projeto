@@ -168,7 +168,7 @@ timeout_handler(void)
       PRINTF("Aguardando auto-configuracao de IP\n");
       return;
     }
-    buf[0] = IDENTIFICACAO;
+    buf[0] = IDENTIFY;
     buf[1] = 1;
     uip_udp_packet_send(client_conn, buf, 2);
 
