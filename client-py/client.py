@@ -16,18 +16,7 @@ class Client:
         com = Common()
         if len(package) > 0 and package[0] == com.LED_STATE:
             ledVal = package[1]
-            if ledVal == com.LEDS_RED:
-                print("The RED led is [ON] and the GREEN led is [OFF]")
-                pass
-            elif ledVal == com.LEDS_GREEN:
-                print("The RED led is [OFF] and GREEN led is [ON]")
-                pass
-            elif ledVal == com.LEDS_ALL:
-                print("BOTH leds are [ON]")
-                pass
-            elif ledVal == com.LEDS_OFF:
-                print("BOTH leds are [OFF]")
-                pass
+            print("The LED STATE is currently at: [%d]" %ledVal)
             pass
         elif len(package) > 0 and package[0] == com.SUCCESS and package[1] == 0:
             print("An error occurred attempting to get LED STATE")
