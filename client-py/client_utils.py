@@ -17,7 +17,7 @@ class ClientUtils:
         initialPackage.append(self.com.IDENTIFY)
         initialPackage.append(self.CLIENT_PROTOCOL_ID)
 
-        # sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        #self.sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.com.sendPackage(addr, port, self.sock, initialPackage[0], initialPackage[1])
 

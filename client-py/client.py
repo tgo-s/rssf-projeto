@@ -8,7 +8,7 @@ from client_utils import *
 
 
 class Client:
-    server_addr = "127.0.0.1"
+    server_addr = "2001:0:9d38:78cf:3c2e:4355:44e5:6399"
     server_port = 8802
     cliUtil = ClientUtils()
 
