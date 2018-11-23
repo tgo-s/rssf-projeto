@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:rssf_udp/core/udp_rssf.dart';
+import 'dart:io';
 
-void main() => runApp(RssfApp());
+void main() async {
+  FlutterUdpClient fClient = FlutterUdpClient();
+  final String _serverAddr = "10.0.2.2";
+  final int _serverPort = 8802;
+  bool connected = await fClient.startClient(_serverAddr, _serverPort);
+  if (connected) {
+    runApp(RssfApp(fClient));
+  }
+}
 
 class RssfApp extends StatelessWidget {
+  final FlutterUdpClient flutterUdpClient;
+
+  RssfApp(this.flutterUdpClient);
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -13,14 +25,18 @@ class RssfApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: RssfHomePage(title: 'CEIOT - Projeto RSSF '),
+      home: RssfHomePage(
+        title: 'CEIOT - Projeto RSSF ',
+        channel: flutterUdpClient,
+      ),
     );
   }
 }
 
 class RssfHomePage extends StatefulWidget {
-  RssfHomePage({Key key, this.title}) : super(key: key);
+  RssfHomePage({Key key, this.title, @required this.channel}) : super(key: key);
   final String title;
+  final FlutterUdpClient channel;
 
   @override
   _RssfHomePageState createState() => _RssfHomePageState();
@@ -30,43 +46,29 @@ class _RssfHomePageState extends State<RssfHomePage> {
   bool _ledIsOn;
   int _lightIntesity;
   String _debugMsg;
-  FlutterUdpClient fClient;
+  final int _defaultIntensityValue = 10;
   final String _serverAddr = "10.0.2.2";
   final int _serverPort = 8802;
-  final int _defaultIntensityValue = 10;
-
-  Future<bool> startClient() async {
-    fClient = FlutterUdpClient();
-    bool clientConnected = false;
-    clientConnected = await fClient.startClient(_serverAddr, _serverPort);
-    return clientConnected;
-  }
 
   Future<List<int>> sendPackage(int op, int value) async {
     List<int> package = [];
-    package = await fClient.sendPackage(_serverAddr, _serverPort, op, 1);
+
+    package = await widget.channel.sendPackage(_serverAddr, _serverPort, op, 1);
 
     return package;
   }
 
   @override
   void initState() {
-    startClient().then((result) {
-      bool clientConnected = result;
-      if (clientConnected) {
-        _debugMsg = "Client connected";
-        _debugMsg = "Getting led status";
-        sendPackage(Operation.LED_GET_STATE, 1).then((result) {
-          List<int> package = result;
-          if (package.length > 0 && package[0] == Operation.LED_STATE) {
-            _lightIntesity = package[1];
-            if (_lightIntesity > 0) {
-              _ledIsOn = true;
-            }
-          }
-        });
-      } else {
-        _debugMsg = "An error occured trying to connect to the server";
+    _debugMsg = "Client connected";
+    _debugMsg = "Getting led status";
+    sendPackage(Operation.LED_GET_STATE, 1).then((result) {
+      List<int> package = result;
+      if (package.length > 0 && package[0] == Operation.LED_STATE) {
+        _lightIntesity = package[1];
+        if (_lightIntesity > 0) {
+          _ledIsOn = true;
+        }
       }
     });
 
@@ -75,9 +77,9 @@ class _RssfHomePageState extends State<RssfHomePage> {
 
   @override
   void dispose() {
-      fClient.closeClient();
-      super.dispose();
-    }
+    widget.channel.closeClient();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
