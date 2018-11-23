@@ -30,6 +30,11 @@ class RssfHomePage extends StatefulWidget {
 class _RssfHomePageState extends State<RssfHomePage> {
   bool _ledIsOn;
   int _lightIntesity;
+  int _ipVersion;
+  String _serverAddr;
+  int _serverPort;
+  String _debugMsg;
+
   final int _defaultIntensityValue = 10;
 
   @override
@@ -57,6 +62,44 @@ class _RssfHomePageState extends State<RssfHomePage> {
         child: Center(
           child: Column(
             children: <Widget>[
+              DropdownButton(
+                hint: Text("Select a IP version"),
+                value: _ipVersion,
+                items: <DropdownMenuItem>[
+                  DropdownMenuItem(
+                    child: Text("IPv4"),
+                    value: 1,
+                  ),
+                  DropdownMenuItem(
+                    child: Text("IPv6"),
+                    value: 2,
+                  )
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _ipVersion = value;
+                    _debugMsg = "IP Version Selected [$_ipVersion]";
+                  });
+                },
+              ),
+              TextField(
+                decoration: InputDecoration(
+                    border: InputBorder.none, hintText: 'Server IP'),
+                onChanged: (value) {
+                  setState(() {
+                    _serverAddr = value;
+                  });
+                },
+              ),
+              TextField(
+                decoration: InputDecoration(
+                    border: InputBorder.none, hintText: 'Server Port'),
+                onChanged: (value) {
+                  setState(() {
+                    _serverPort = int.parse(value);
+                  });
+                },
+              ),
               _ledIsOn
                   ? Image.asset("assets/img/light_bulb_on.png")
                   : Image.asset("assets/img/light_bulb_off.png"),
@@ -95,6 +138,13 @@ class _RssfHomePageState extends State<RssfHomePage> {
               Container(
                 margin: EdgeInsets.only(top: 10.0),
                 child: Text("Led intensity is at: $_lightIntesity"),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 16.0),
+                child: Text(
+                  "Debug: $_debugMsg - Server: $_serverAddr - Port: $_serverPort",
+                  style: TextStyle(color: Colors.grey),
+                ),
               ),
             ],
           ),
