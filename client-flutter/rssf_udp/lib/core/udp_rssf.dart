@@ -5,26 +5,31 @@ class FlutterUdpClient {
   final int clientProtocolId = 2;
   RawDatagramSocket socket;
 
-  Future<bool> startClient(String address, int port) async {
+  Future<bool> startClient(String address, int port, int tipoConn) async {
     List<int> initPackage = [];
     //initial package to the server
     initPackage.add(Operation.IDENTIFY);
     initPackage.add(clientProtocolId);
 
-    socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+    switch (tipoConn) {
+      case 1:
+        socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 1234);    
+        break;
+      case 2:
+        socket = await RawDatagramSocket.bind(InternetAddress.anyIPv6, 1234);    
+        break;
+      
+    }
 
-    // Future.wait([
-    //   RawDatagramSocket.bind(InternetAddress.anyIPv4, 0).then((rawSocket) {
-    //     if (rawSocket != null) {
-    //       socket = rawSocket;
-    //     }
-    //   })
-    // ]);
+    // RawDatagramSocket.bind(InternetAddress.anyIPv4, 80).then((rawSocket){
+    //   if(rawSocket != null){
+    //     socket = rawSocket;
+    //   }
+    // });
 
     Common com = new Common();
 
-    print(
-        "Sending an operation ${com.getOperationName(Operation.IDENTIFY)} to Server");
+    print("Sending an operation ${com.getOperationName(Operation.IDENTIFY)} to Server");
 
     InternetAddress addr = new InternetAddress(address);
     socket.send(initPackage, addr, port);
@@ -40,8 +45,7 @@ class FlutterUdpClient {
     }
   }
 
-  Future<List<int>> sendPackage(
-      String address, int port, operation, value) async {
+  Future<List<int>> sendPackage(String address, int port, operation, value) async {
     // socket = await RawDatagramSocket.bind(client_addr, 0);
     List<int> package = [];
     package.add(operation);
@@ -55,16 +59,6 @@ class FlutterUdpClient {
 
   Future<List<int>> waitPackage(RawDatagramSocket socket) async {
     List<int> receivedPack = [];
-    // socket.listen((RawSocketEvent ev) {
-    //   print("Event: $ev");
-    //   if (ev == RawSocketEvent.read) {
-    //     Datagram dg = socket.receive();
-    //     if (dg != null) {
-    //       receivedPack = dg.data;
-    //     }
-    //   }
-    // });
-
     await for (RawSocketEvent ev in socket.asBroadcastStream()) {
       if (ev == RawSocketEvent.read) {
         Datagram dg = socket.receive();
@@ -82,7 +76,7 @@ class FlutterUdpClient {
     return receivedPack;
   }
 
-  void closeClient() {
+  void closeClient(){
     socket.close();
   }
 }
