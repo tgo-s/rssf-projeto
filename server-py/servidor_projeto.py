@@ -91,8 +91,8 @@ def handleOperations(op, sock, client_addr, client_port):
 def startServer():
     HOST = '' #all interfaces
     UDP_PORT = 8802
-    #sock = socket.socket(socket.AF_INET6 , socket.SOCK_DGRAM) #UDP IPv6
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP IPv4
+    sock = socket.socket(socket.AF_INET6 , socket.SOCK_DGRAM) #UDP IPv6
+    #sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP IPv4
     sock.bind((HOST , UDP_PORT))
 
     #devices = {}
