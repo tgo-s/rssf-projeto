@@ -94,13 +94,13 @@ tcpip_handler(int16_t *loadvalue, int16_t *current_duty, int16_t *ticks)
                 uip_ipaddr_copy(&client_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
                 client_conn->rport = UIP_UDP_BUF->destport;
 
-                sensor = sensors_find(ADC_SENSOR);
+                //sensor = sensors_find(ADC_SENSOR);
 
-                buf[0] = SUCCESS;
-                //buf[1] = ; //enviar o valor do sensor
+                buf[0] = LED_STATE;
+                buf[1] = (*loadvalue - *ticks); //enviar o valor do sensor teste
 
                 uip_udp_packet_send(client_conn, buf, 2);
-                PRINTF("Enviando SUCCESS para [");
+                PRINTF("Enviando LED_STATE para [");
                 PRINT6ADDR(&client_conn->ripaddr);
                 PRINTF("]:%u\n", UIP_HTONS(client_conn->rport));
 
