@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:rssf_udp/core/udp_rssf.dart';
 import 'dart:io';
 
-void main() async {
-  runApp(RssfApp());
-}
+void main() => runApp(RssfApp());
 
 class RssfApp extends StatelessWidget {
-  RssfApp();
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -17,9 +14,7 @@ class RssfApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: RssfHomePage(
-        title: 'CEIOT - Projeto RSSF ',
-      ),
+      home: RssfHomePage(title: 'CEIOT - Projeto RSSF '),
     );
   }
 }
@@ -33,48 +28,26 @@ class RssfHomePage extends StatefulWidget {
 }
 
 class _RssfHomePageState extends State<RssfHomePage> {
-  FlutterUdpClient _flutterUdpClient;
   bool _ledIsOn;
   int _lightIntesity;
-  String _debugMsg;
-  int _ipVersion = 0;
+  int _ipVersion;
   String _serverAddr;
   int _serverPort;
+  String _debugMsg;
 
   final int _defaultIntensityValue = 10;
 
-  Future<List<int>> sendPackage(int op, int value) async {
-    List<int> package = [];
-
-    package =
-        await _flutterUdpClient.sendPackage(_serverAddr, _serverPort, op, 1);
-
-    return package;
-  }
-
   @override
   void initState() {
-    // _debugMsg = "Getting led status";
-    // sendPackage(Operation.LED_GET_STATE, 1).then((result) {
-    //   List<int> package = result;
-    //   if (package.length > 0 && package[0] == Operation.LED_STATE) {
-    //     _lightIntesity = package[1];
-    //     if (_lightIntesity > 0) {
-    //       _ledIsOn = true;
-    //     }
-    //   }
-    // });
     setState(() {
       _ledIsOn = false;
       _lightIntesity = 0;
     });
-
     super.initState();
   }
 
   @override
   void dispose() {
-    _flutterUdpClient.closeClient();
     super.dispose();
   }
 
@@ -90,6 +63,8 @@ class _RssfHomePageState extends State<RssfHomePage> {
           child: Column(
             children: <Widget>[
               DropdownButton(
+                hint: Text("Select a IP version"),
+                value: _ipVersion,
                 items: <DropdownMenuItem>[
                   DropdownMenuItem(
                     child: Text("IPv4"),
@@ -103,41 +78,50 @@ class _RssfHomePageState extends State<RssfHomePage> {
                 onChanged: (value) {
                   setState(() {
                     _ipVersion = value;
+                    _debugMsg = "IP Version Selected [$_ipVersion]";
                   });
                 },
               ),
-              TextField(
-                decoration: InputDecoration(
-                    border: InputBorder.none, hintText: 'Server IP'),
-                onChanged: (value) {
-                  _serverAddr = value;
-                },
+              Container(
+                child: TextField(
+                  decoration: InputDecoration(
+                      border: InputBorder.none, hintText: 'Server IP'),
+                  onChanged: (value) {
+                    setState(() {
+                      _serverAddr = value;
+                    });
+                  },
+                ),
+                margin: EdgeInsets.symmetric(vertical: 5.0, horizontal: 20.0),
               ),
-              TextField(
-                decoration: InputDecoration(
-                    border: InputBorder.none, hintText: 'Server Port'),
-                onChanged: (value) {
-                  _serverPort = int.parse(value);
-                },
+              Container(
+                child: TextField(
+                  decoration: InputDecoration(
+                      border: InputBorder.none, hintText: 'Server Port'),
+                  onChanged: (value) {
+                    setState(() {
+                      _serverPort = int.parse(value);
+                    });
+                  },
+                ),
+                margin: EdgeInsets.symmetric(vertical: 5.0, horizontal: 20.0),
               ),
-              RaisedButton(
+              Container(
+                  child: RaisedButton(
                 child: Text("Connect"),
                 onPressed: () {
                   setState(() {
-                    // bool connected = await _flutterUdpClient.startClient(
-                    //     _serverAddr, _serverPort, _ipVersion);
 
-                    // if (connected) {
-                    //   _debugMsg = "Connected";
-                    // } else {
-                    //   _debugMsg = "Error";
-                    // }
                   });
                 },
+              ),margin: EdgeInsets.symmetric(vertical: 10.0),
               ),
-              _ledIsOn
+              Container(
+                child: _ledIsOn
                   ? Image.asset("assets/img/light_bulb_on.png")
                   : Image.asset("assets/img/light_bulb_off.png"),
+                margin: EdgeInsets.only(top: 20.0),
+              ),
               Container(
                 margin: EdgeInsets.only(top: 16.0),
                 child: Row(
@@ -151,8 +135,6 @@ class _RssfHomePageState extends State<RssfHomePage> {
                           if (_lightIntesity <= 0) {
                             _ledIsOn = false;
                             _lightIntesity = 0;
-                          } else {
-                            _debugMsg = "Error";
                           }
                         });
                       },
@@ -165,8 +147,6 @@ class _RssfHomePageState extends State<RssfHomePage> {
                           _ledIsOn = true;
                           if (_lightIntesity >= 100) {
                             _lightIntesity = 100;
-                          } else {
-                            _debugMsg = "Error";
                           }
                         });
                       },
@@ -179,12 +159,12 @@ class _RssfHomePageState extends State<RssfHomePage> {
                 child: Text("Led intensity is at: $_lightIntesity"),
               ),
               Container(
-                margin: EdgeInsets.only(top: 30.0),
+                margin: EdgeInsets.only(top: 16.0),
                 child: Text(
-                  _debugMsg,
-                  style: TextStyle(color: Colors.lightGreen),
+                  "Debug: $_debugMsg - Server: $_serverAddr - Port: $_serverPort",
+                  style: TextStyle(color: Colors.grey),
                 ),
-              )
+              ),
             ],
           ),
         ),
